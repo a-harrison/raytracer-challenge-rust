@@ -1,4 +1,4 @@
-use crate::coordinate::{ point::Point, traits::Coordinate, vector::Vector };
+use crate::entities::{ point::Point, traits::Coordinate, vector::Vector };
 use std::fmt::{ Display, Formatter, Result};
 
 #[derive(Debug)]

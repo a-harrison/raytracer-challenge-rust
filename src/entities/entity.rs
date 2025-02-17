@@ -1,6 +1,6 @@
 use std::ops::{ Add, Sub, Neg, Mul, Div };
-use crate::coordinate::constants::fuzzy_equal;
-use crate::coordinate::{ point::Point, traits::Coordinate, vector::Vector };
+use crate::entities::constants::EPISOLON;
+use crate::entities::{ point::Point, traits::Coordinate, vector::Vector };
 
 #[derive(Debug)]
 pub struct Entity { values: (f64, f64, f64, f64) }
@@ -142,9 +142,22 @@ pub fn entity_dot (a: &Entity, b: &Entity) -> f64 {
     ( a.w() * b.w() )
 }
 
+pub fn fuzzy_equal(first: f64, second: f64) -> bool {
+    if (first - second).abs() < EPISOLON {
+        return true;
+    }
+
+    return false;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn are_fuzzy_equal() {
+        assert!(fuzzy_equal(1.00000, 1.000001));
+    }
 
     #[test]
     fn tuple_is_a_point() {

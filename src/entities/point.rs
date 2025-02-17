@@ -1,4 +1,4 @@
-use crate::coordinate::{ entity::Entity, traits::Coordinate, vector::Vector };
+use crate::entities::{ entity::Entity, traits::Coordinate, vector::Vector };
 use std::ops::{ Add, Sub };
 
 #[derive(Debug, PartialEq)]

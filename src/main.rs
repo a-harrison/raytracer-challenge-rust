@@ -1,6 +1,6 @@
 #![cfg_attr(debug_assertions, allow(unused_imports))]
 
-use rust_raytracer::coordinate::{ point::Point, vector::Vector, vector::normalize };
+use rust_raytracer::entities::{ point::Point, vector::Vector, vector::normalize };
 use rust_raytracer::exercises::ch1:: { Environment, Projectile, simulate, tick }; 
 
 fn main() {

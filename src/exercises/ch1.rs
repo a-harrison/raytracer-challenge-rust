@@ -1,4 +1,4 @@
-use crate::entities::{ point::Point, traits::Coordinate, vector::Vector };
+use crate::entities::{ point::Point, traits::Coordinate, vector::Vector, vector::normalize };
 use std::fmt::{ Display, Formatter, Result};
 
 #[derive(Debug)]
@@ -51,4 +51,17 @@ pub fn simulate(p: &Projectile, e: &Environment) {
         println!("{}", simulated_projectile);
         simulated_projectile = tick(&e, &simulated_projectile); 
     }
+}
+
+pub fn example_simulation() {
+    let p: Projectile = Projectile { 
+        position: Point::create(0_f64, 1_f64, 0_f64),
+        velocity: normalize(&Vector::create(1_f64, 1_f64, 0_f64))
+    };
+    let e: Environment = Environment {
+        gravity: Vector::create(0_f64, -0.1_f64, 0_f64),
+        wind: Vector::create(-0.01_f64, 0_f64, 0_f64)
+    }; 
+
+    simulate(&p, &e);
 }

@@ -3,3 +3,4 @@ pub mod constants;
 pub mod entity;
 pub mod point;
 pub mod vector;
+pub mod color;

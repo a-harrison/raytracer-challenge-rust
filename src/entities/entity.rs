@@ -2,7 +2,7 @@ use std::ops::{ Add, Sub, Neg, Mul, Div };
 use crate::entities::constants::EPISOLON;
 use crate::entities::{ point::Point, traits::Coordinate, vector::Vector };
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Entity { values: (f64, f64, f64, f64) }
 
 impl Entity {
@@ -88,6 +88,19 @@ impl Neg for Entity {
 
     fn neg(self) -> Self {
         Entity::create(-self.x(), -self.y(), -self.z(), -self.w())
+    }
+}
+
+impl Mul for Entity {
+    type Output = Self; 
+
+    fn mul(self, rhs: Self) -> Self {
+        Entity::create(
+            self.x() * rhs.x(), 
+            self.y() * rhs.y(), 
+            self.z() * rhs.z(),
+            self.w() * rhs.w() 
+        )
     }
 }
 

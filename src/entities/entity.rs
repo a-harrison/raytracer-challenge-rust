@@ -131,20 +131,20 @@ impl Div<f64> for Entity {
 }
 
 impl Coordinate for Entity {
-    fn x(&self) -> f64 {
-        self.values.0
+    fn x(&self) -> &f64 {
+        &self.values.0
     }
 
-    fn y(&self) -> f64 {
-        self.values.1
+    fn y(&self) -> &f64 {
+        &self.values.1
     }
 
-    fn z(&self) -> f64 {
-        self.values.2
+    fn z(&self) -> &f64 {
+        &self.values.2
     }
 
-    fn w(&self) -> f64 {
-        self.values.3
+    fn w(&self) -> &f64 {
+        &self.values.3
     }
 }
 
@@ -155,7 +155,7 @@ pub fn entity_dot (a: &Entity, b: &Entity) -> f64 {
     ( a.w() * b.w() )
 }
 
-pub fn fuzzy_equal(first: f64, second: f64) -> bool {
+pub fn fuzzy_equal(first: &f64, second: &f64) -> bool {
     if (first - second).abs() < EPISOLON {
         return true;
     }
@@ -169,26 +169,26 @@ mod tests {
 
     #[test]
     fn are_fuzzy_equal() {
-        assert!(fuzzy_equal(1.00000, 1.000001));
+        assert!(fuzzy_equal(&1.00000, &1.000001));
     }
 
     #[test]
     fn tuple_is_a_point() {
         let a: Entity = Entity::create(4.3, -4.2, 3.1, 1.0 );
-        assert_eq!(a.x(), 4.3);
-        assert_eq!(a.y(), -4.2);
-        assert_eq!(a.z(), 3.1);
-        assert_eq!(a.w(), 1.0);
+        assert_eq!(a.x(), &4.3);
+        assert_eq!(a.y(), &-4.2);
+        assert_eq!(a.z(), &3.1);
+        assert_eq!(a.w(), &1.0);
         assert_eq!(Point::create(4.3, -4.2, 3.1), a)
     }
 
     #[test]
     fn tuples_is_a_vector() {
         let a: Entity = Entity::create(4.3, -4.2, 3.1, 0.0);
-        assert_eq!(a.x(), 4.3);
-        assert_eq!(a.y(), -4.2);
-        assert_eq!(a.z(), 3.1);
-        assert_eq!(a.w(), 0.0);
+        assert_eq!(a.x(), &4.3);
+        assert_eq!(a.y(), &-4.2);
+        assert_eq!(a.z(), &3.1);
+        assert_eq!(a.w(), &0.0);
         assert_eq!(Vector::create(4.3, -4.2, 3.1), a)
     }
 

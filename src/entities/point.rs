@@ -71,19 +71,19 @@ impl Sub<Vector> for Point {
 }
 
 impl Coordinate for Point {
-    fn x(&self) -> f64 {
+    fn x(&self) -> &f64 {
         self.entity.x()
     }
     
-    fn y(&self) -> f64 {
+    fn y(&self) -> &f64 {
         self.entity.y()
     }
 
-    fn z(&self) -> f64 {
+    fn z(&self) -> &f64 {
         self.entity.z()
     }
 
-    fn w(&self) -> f64 {
+    fn w(&self) -> &f64 {
         self.entity.w()
     }
 }

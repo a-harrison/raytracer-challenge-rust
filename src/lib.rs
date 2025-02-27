@@ -1,3 +1,3 @@
 pub mod entities;
 pub mod exercises; 
-pub mod canvas; 
+pub mod img; 

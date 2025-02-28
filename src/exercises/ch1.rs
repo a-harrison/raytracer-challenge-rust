@@ -47,7 +47,7 @@ pub fn tick(e: &Environment, p: &Projectile) -> Projectile {
 
 pub fn simulate(p: &Projectile, e: &Environment) {
     let mut simulated_projectile: Projectile = p.clone();
-    while simulated_projectile.position.y() > 0_f64 {
+    while simulated_projectile.position.y() > &0_f64 {
         println!("{}", simulated_projectile);
         simulated_projectile = tick(&e, &simulated_projectile); 
     }

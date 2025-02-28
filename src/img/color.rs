@@ -3,7 +3,7 @@ use std::ops::{ Add, Sub, Mul };
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Color {
-    entity: Entity
+    pub entity: Entity
 }
 
 impl Color {
@@ -19,15 +19,15 @@ impl Color {
         }
     }
 
-    fn r(&self) -> f64 {
+    pub fn r(&self) -> &f64 {
         self.entity.x()    
     }
     
-    fn g(&self) -> f64 {
+    pub fn g(&self) -> &f64 {
         self.entity.y()    
     }
 
-    fn b(&self) -> f64 {
+    pub fn b(&self) -> &f64 {
         self.entity.z()    
     }
 
@@ -67,6 +67,12 @@ impl Mul for Color {
     }
 }
 
+impl ToString for Color {
+    fn to_string(&self) -> String {
+        format!("{}, {}, {}", self.r(), self.g(), self.b())
+    }
+}
+
 pub fn hadamard_product(c1: &Color, c2: &Color) -> Color {
     Color::create(
         c1.r() * c2.r(), 
@@ -82,9 +88,9 @@ mod tests {
     #[test]
     fn colors_are_rgb_tuples() {
         let c: Color = Color::create(-0.5, 0.4, 1.7);
-        assert_eq!(c.r(), -0.5_f64);
-        assert_eq!(c.g(), 0.4_f64);
-        assert_eq!(c.b(), 1.7_f64);
+        assert_eq!(c.r(), &-0.5_f64);
+        assert_eq!(c.g(), &0.4_f64);
+        assert_eq!(c.b(), &1.7_f64);
     }
 
     #[test]

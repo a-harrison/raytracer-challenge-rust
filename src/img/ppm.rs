@@ -1,17 +1,19 @@
-use crate::img::{canvas::Canvas, canvas::VectorCanvas, color::Color };
+use crate::img::{ canvas::Canvas, color::Color };
 
 // trait ImageWriter {
 //     fn write_image(c: Canvas, f: ImageFormatter, file_name: String ) -> String;
 // }
 
-trait ImageFormatter {
+trait ImageFormat {
     fn format<T: Canvas>(c: &mut T) -> String; 
 }
 
-const MIN_COLOR_VALUE: u8 = 0;
-const MAX_COLOR_VALUE: u8 = 255;
+struct PPMImageFormat;
 
-impl PPMImageFormatter {
+impl PPMImageFormat {
+    const MIN_COLOR_VALUE: u8 = 0;
+    const MAX_COLOR_VALUE: u8 = 255;    
+
     fn build_header<T: Canvas>(c: &T) -> String {
         format!("P3\n{} {}\n255", c.width(), c.height()).to_string()
     }
@@ -19,16 +21,8 @@ impl PPMImageFormatter {
     fn convert_canvas<T: Canvas>(c: &mut T) -> String {
         let mut file_data = String::new();
         let canvas_iter = c.iter();
-        // let first_entry = canvas_iter.next(); 
 
-        // match first_entry {
-        //     Some(first_entry) => {
-        //         file_data.push_str(&Self::convert_color(&first_entry));
-        //     },
-        //     None => {
-        //         return file_data
-        //     }
-        // }
+        // TODO: Find a better way to do the join here.
         let mut not_first_elem: bool = false;
 
         for elem in canvas_iter {
@@ -45,17 +39,17 @@ impl PPMImageFormatter {
 
     fn scale_color_to_range(c: &f64) -> u8 {
         match c {
-            c if *c < 0.0 => MIN_COLOR_VALUE,
-            c if *c > 1.0 => MAX_COLOR_VALUE as u8, 
-            c => (*c * MAX_COLOR_VALUE as f64).round() as u8
+            c if *c < 0.0 => Self::MIN_COLOR_VALUE,
+            c if *c > 1.0 => Self::MAX_COLOR_VALUE as u8, 
+            c => (*c * Self::MAX_COLOR_VALUE as f64).round() as u8
         }
     }
 
     fn convert_color(c: &Color) -> String {
         let mut output = String::with_capacity(11);
-        let red = PPMImageFormatter::scale_color_to_range(c.r());
-        let green = PPMImageFormatter::scale_color_to_range(c.g());
-        let blue = PPMImageFormatter::scale_color_to_range(c.b());
+        let red = PPMImageFormat::scale_color_to_range(c.r());
+        let green = PPMImageFormat::scale_color_to_range(c.g());
+        let blue = PPMImageFormat::scale_color_to_range(c.b());
 
         output.push_str(&red.to_string());
         output.push_str(" ");
@@ -67,10 +61,10 @@ impl PPMImageFormatter {
     }
 }
 
-impl ImageFormatter for PPMImageFormatter {
+impl ImageFormat for PPMImageFormat {
     fn format<T: Canvas>(c: &mut T) -> String {
-        let header = PPMImageFormatter::build_header(c);
-        let contents = PPMImageFormatter::convert_canvas(c);
+        let header = PPMImageFormat::build_header(c);
+        let contents = PPMImageFormat::convert_canvas(c);
         let mut file_contents: String = String::new(); 
 
         file_contents.push_str(&header); 
@@ -86,37 +80,38 @@ impl ImageFormatter for PPMImageFormatter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::img::canvas::VectorCanvas;
 
     #[test]
     fn constructing_ppm_header() {
-        let mut c: VectorCanvas = Canvas::create(5, 3);
+        let c: VectorCanvas = Canvas::create(5, 3);
         let expected_header: String = "P3\n5 3\n255".to_string();
 
-        let ppm_header: String = PPMImageFormatter::build_header(&c);
+        let ppm_header: String = PPMImageFormat::build_header(&c);
 
         assert_eq!(ppm_header, expected_header);
     }
 
     #[test]
     fn convert_negative_value_to_range() {
-        assert_eq!(PPMImageFormatter::scale_color_to_range(&-1.5), 0);
+        assert_eq!(PPMImageFormat::scale_color_to_range(&-1.5), 0);
     }
 
     #[test]
     fn convert_excess_value_to_range() {
-        assert_eq!(PPMImageFormatter::scale_color_to_range(&1.5), 255);
+        assert_eq!(PPMImageFormat::scale_color_to_range(&1.5), 255);
     }
 
     #[test]
     fn convert_value_to_range() {
-        assert_eq!(PPMImageFormatter::scale_color_to_range(&0.5_f64), 128);
+        assert_eq!(PPMImageFormat::scale_color_to_range(&0.5_f64), 128);
     }
 
     #[test]
     fn convert_color_to_string_tuple() {
         let c: Color = Color::create(-1.5, 0.5, 1.5);
 
-        assert_eq!(PPMImageFormatter::convert_color(&c), "0 128 255".to_string());
+        assert_eq!(PPMImageFormat::convert_color(&c), "0 128 255".to_string());
     }
 
     #[test]
@@ -131,7 +126,7 @@ mod tests {
         c.write_pixel(2, 1, c2); 
         c.write_pixel(4, 2, c3); 
 
-        let file_contents: String = PPMImageFormatter::convert_canvas(&mut c);
+        let file_contents: String = PPMImageFormat::convert_canvas(&mut c);
         let expected: String = String::from("255 0 0 0 0 0 0 0 0 0 0 0 0 0 0 \
                                             0 0 0 0 0 0 0 128 0 0 0 0 0 0 0 \
                                             0 0 0 0 0 0 0 0 0 0 0 0 0 0 255");

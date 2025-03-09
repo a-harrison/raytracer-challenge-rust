@@ -8,8 +8,11 @@ trait ImageFormat {
     fn format<T: Canvas>(c: &mut T) -> String; 
 }
 
+
+#[allow(dead_code, unused)]
 struct PPMImageFormat;
 
+#[allow(dead_code, unused)]
 impl PPMImageFormat {
     const MIN_COLOR_VALUE: u8 = 0;
     const MAX_COLOR_VALUE: u8 = 255;    
@@ -18,21 +21,53 @@ impl PPMImageFormat {
         format!("P3\n{} {}\n255", c.width(), c.height()).to_string()
     }
 
+    fn append_color_tuple(file_data: &mut String, color_tuple: &mut [String; 3], row_len: &mut usize) {
+        let mut iter = color_tuple.iter();
+        
+        for elem in iter {
+            if *row_len == 0 as usize {
+                file_data.push_str(elem);
+                *row_len += elem.len();
+            } else if *row_len + elem.len() >= 70 {
+                file_data.push_str("\n");
+                file_data.push_str(elem);
+                *row_len = elem.len();
+            } else {
+                file_data.push_str(" ");
+                file_data.push_str(elem);
+                *row_len += elem.len() + 1;
+            }
+        }
+    }
+
+    fn convert_and_append_row(file_data: &mut String, row: &Vec<Color>) {
+        let iter = row.iter();
+        let mut row_len: usize = 0;
+        let mut color_tuple: [String; 3];
+
+        for color in iter {
+            color_tuple = PPMImageFormat::color_to_tuple(&color);
+            PPMImageFormat::append_color_tuple(file_data, &mut color_tuple, &mut row_len);
+            // file_data.push_str(" ");
+            // row_len += 1;
+        }
+    
+        file_data.push_str("\n");
+        row_len = 0;
+    }
+
     fn convert_canvas<T: Canvas>(c: &mut T) -> String {
         let mut file_data = String::new();
-        let canvas_iter = c.iter();
+        // let mut row_len: usize = 0;
+        let canvas_row_iter = c.iter();
+        let mut color_tuple: [String; 3]; 
 
-        // TODO: Find a better way to do the join here.
-        let mut not_first_elem: bool = false;
-
-        for elem in canvas_iter {
-            if not_first_elem {
-                file_data.push_str(" ");
-            } else {
-                not_first_elem = true;
-            }
-            file_data.push_str(&Self::convert_color(&elem));
+        for row in canvas_row_iter {
+            PPMImageFormat::convert_and_append_row(&mut file_data, row);
         }
+
+        // Remove trailing blank space
+        file_data.pop();
 
         file_data
     }
@@ -45,17 +80,12 @@ impl PPMImageFormat {
         }
     }
 
-    fn convert_color(c: &Color) -> String {
-        let mut output = String::with_capacity(11);
-        let red = PPMImageFormat::scale_color_to_range(c.r());
-        let green = PPMImageFormat::scale_color_to_range(c.g());
-        let blue = PPMImageFormat::scale_color_to_range(c.b());
-
-        output.push_str(&red.to_string());
-        output.push_str(" ");
-        output.push_str(&green.to_string());
-        output.push_str(" ");
-        output.push_str(&blue.to_string());
+    fn color_to_tuple<'a>(c: &Color) -> [String; 3] {
+        let output: [String; 3] = [
+            PPMImageFormat::scale_color_to_range(c.r()).to_string(), 
+            PPMImageFormat::scale_color_to_range(c.g()).to_string(),
+            PPMImageFormat::scale_color_to_range(c.b()).to_string()
+        ];
 
         output
     }
@@ -65,17 +95,15 @@ impl ImageFormat for PPMImageFormat {
     fn format<T: Canvas>(c: &mut T) -> String {
         let header = PPMImageFormat::build_header(c);
         let contents = PPMImageFormat::convert_canvas(c);
-        let mut file_contents: String = String::new(); 
+        let mut file_contents: String = String::with_capacity(header.len() + contents.len() + 1); 
 
         file_contents.push_str(&header); 
         file_contents.push_str(&contents);
+        file_contents.push_str("\n");
         
         file_contents
     }
 }
-
-// let writer: PPMWriter = ImageWriter::create(); 
-// writer.co
 
 #[cfg(test)]
 mod tests {
@@ -111,7 +139,7 @@ mod tests {
     fn convert_color_to_string_tuple() {
         let c: Color = Color::create(-1.5, 0.5, 1.5);
 
-        assert_eq!(PPMImageFormat::convert_color(&c), "0 128 255".to_string());
+        assert_eq!(PPMImageFormat::color_to_tuple(&c), ["0", "128", "255"]);
     }
 
     #[test]
@@ -127,10 +155,31 @@ mod tests {
         c.write_pixel(4, 2, c3); 
 
         let file_contents: String = PPMImageFormat::convert_canvas(&mut c);
-        let expected: String = String::from("255 0 0 0 0 0 0 0 0 0 0 0 0 0 0 \
-                                            0 0 0 0 0 0 0 128 0 0 0 0 0 0 0 \
+        let expected: String = String::from("255 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n\
+                                            0 0 0 0 0 0 0 128 0 0 0 0 0 0 0\n\
                                             0 0 0 0 0 0 0 0 0 0 0 0 0 0 255");
         
         assert_eq!(file_contents, expected);
+    }
+
+    #[test]
+    fn splitting_long_lines_in_ppm_files() {
+        let mut c: VectorCanvas = Canvas::create_with_default_color(10, 2, Color::create(1.0, 0.8, 0.6)); 
+
+        let file_contents: String = PPMImageFormat::convert_canvas(&mut c);
+        
+        let expected: String = String::from("255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204\n\
+                                            153 255 204 153 255 204 153 255 204 153 255 204 153\n\
+                                            255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204\n\
+                                            153 255 204 153 255 204 153 255 204 153 255 204 153");
+        assert_eq!(file_contents, expected);        
+    }
+
+    #[test]
+    fn ppm_files_terminated_by_newline_character() {
+        let mut c: VectorCanvas = Canvas::create(5, 3); 
+        let ppm = PPMImageFormat::format(&mut c);
+
+        assert_eq!(ppm.chars().last().unwrap(), 0xA as char);
     }
 }

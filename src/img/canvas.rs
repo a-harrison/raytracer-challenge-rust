@@ -1,13 +1,15 @@
 use crate::img::color::Color;
 
 pub trait Canvas {
-    fn create(width: usize, height: usize) -> Self; 
+    fn create(width: usize, height: usize) -> Self;
+    fn create_with_default_color(width: usize, height: usize, color: Color) -> Self;  
     fn pixel_at(&self, x: usize, y: usize) -> &Color; 
     fn write_pixel(&mut self, x: usize, y: usize, c: Color);
     fn width(&self) -> usize;
     fn height(&self) -> usize;
     fn size(&self) -> usize; 
-    fn iter(&mut self) -> impl Iterator<Item = Color>;
+    fn iter(&mut self) -> impl Iterator<Item = &Vec<Color>>;
+    // fn iter(&mut self) -> impl Iterator<Item = Color>;
 }
 
 pub struct VectorCanvas {
@@ -27,29 +29,9 @@ struct RowIteratorHolder<I: Iterator<Item = Vec<Color>>> {
     iter: I
 }
 
-// pub struct OtherIterator<'a> {
-//     canvas: &'a VectorCanvas,
-//     row_iter: Box<dyn Iterator<Item = Vec<Color>>>,
-//     elem_iter: Box<dyn Iterator<Item = Color>>
-//     // row: usize, 
-//     // current_iter: Box<dyn Iterator<Item = Color>>
-// }
-
-// impl OtherIterator<'a> {
-//     fn create(&self, canvas: &VectorCanvas) -> Self {
-//         let canvas_row_iter = canvas.canvas.iter();
-//         let elem_iter = canvas_row_iter.next().iter(); 
-
-//         OtherIterator {
-//             canvas: canvas,
-//             row_iter : canvas_row_iter,
-//             current_iter: canvas.canvas.iter().iter()
-//         }
-//     }
-// }
-
 impl<'a> Iterator for VectorCanvasIterator<'a> {
     type Item = Color; 
+    
 
     fn next(&mut self) -> Option<Self::Item> {
         // Go up one row
@@ -72,14 +54,18 @@ impl<'a> Iterator for VectorCanvasIterator<'a> {
 }
 
 impl Canvas for VectorCanvas {
-    fn create(width: usize, height: usize) -> VectorCanvas {
-        let row: Vec<Color> = vec![Color::create(0_f64, 0_f64, 0_f64); width];
+    fn create_with_default_color(width: usize, height: usize, color: Color) -> Self {
+        let row: Vec<Color> = vec![color.clone(); width]; 
 
         VectorCanvas {
             width: width, 
             height: height, 
             canvas: vec![row.clone(); height],
         }
+    }
+
+    fn create(width: usize, height: usize) -> VectorCanvas {
+        Self::create_with_default_color(width, height, Color::create(0_f64, 0_f64, 0_f64))
     }
 
     // TODO: 
@@ -93,13 +79,17 @@ impl Canvas for VectorCanvas {
         self.canvas[y][x] = c; 
     }
 
-    fn iter(&mut self) -> impl Iterator<Item = Color> {
-        VectorCanvasIterator {
-            canvas: self,
-            current_row: 0,
-            current_column: 0
-        }
+    fn iter(&mut self) -> impl Iterator<Item = &Vec<Color>> {
+        self.canvas.iter()
     }
+
+    // fn iter(&mut self) -> impl Iterator<Item = Color> {
+    //     VectorCanvasIterator {
+    //         canvas: self,
+    //         current_row: 0,
+    //         current_column: 0
+    //     }
+    // }
 
     fn size(&self) -> usize {
         self.width * self.height 
@@ -132,6 +122,21 @@ mod tests {
             }
         }
         // assert_eq!(c.canvas[0][0], Color::create(0.0, 0.0, 0.0)); 
+    }
+
+    #[test]
+    fn create_default_color_canvas() {
+        let c: VectorCanvas = VectorCanvas::create_with_default_color(10, 20, Color::create(1.0, 1.0, 1.0));
+        
+        assert_eq!(c.width, 10);
+        assert_eq!(c.height, 20);
+        
+        let row_iter = c.canvas.iter(); 
+        for row in row_iter {
+            for elem in row.iter() {
+                assert_eq!(elem.clone(), Color::create(1.0, 1.0, 1.0));
+            }
+        }
     }
 
     #[test]
